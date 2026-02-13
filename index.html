@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ประกาศเวลาซักผ้า</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<style>
+body { font-family: Arial; padding:20px; }
+button { padding:5px 10px; margin-top:5px; }
+#adminPanel { display:none; margin-top:15px; }
+</style>
+</head>
+
+<body>
+
+<h2>ประกาศเวลาซักผ้า</h2>
+
+<p>เวลารับผ้า: <span id="pickupDisplay">ยังไม่มีประกาศ</span></p>
+<p>เวลาส่งผ้า: <span id="deliveryDisplay">ยังไม่มีประกาศ</span></p>
+
+<hr>
+
+<h3>แอดมิน</h3>
+<input type="password" id="adminPass" placeholder="รหัสผ่าน">
+<button onclick="loginAdmin()">เข้าสู่ระบบ</button>
+
+<div id="adminPanel">
+รับผ้า:
+<input type="datetime-local" id="pickupTimeInput">
+<button onclick="saveTime('pickupTime')">บันทึก</button>
+
+<br><br>
+
+ส่งผ้า:
+<input type="datetime-local" id="deliveryTimeInput">
+<button onclick="saveTime('deliveryTime')">บันทึก</button>
+</div>
+
+<script>
+var firebaseConfig = {
+  apiKey: "ใส่ของเธอ",
+  authDomain: "ใส่ของเธอ",
+  databaseURL: "ใส่ของเธอ",
+  projectId: "ใส่ของเธอ",
+  storageBucket: "ใส่ของเธอ",
+  messagingSenderId: "ใส่ของเธอ",
+  appId: "ใส่ของเธอ"
+};
+
+firebase.initializeApp(firebaseConfig);
+var database = firebase.database();
+
+function loginAdmin() {
+  var pass = document.getElementById("adminPass").value;
+  if (pass === "admin999") {
+    document.getElementById("adminPanel").style.display = "block";
+  } else {
+    alert("รหัสผิด");
+  }
+}
+
+function saveTime(type) {
+  var inputId = type === "pickupTime" ? "pickupTimeInput" : "deliveryTimeInput";
+  var value = document.getElementById(inputId).value;
+  if (value) {
+    firebase.database().ref(type).set(value);
+  }
+}
+
+firebase.database().ref("pickupTime").on("value", function(snapshot) {
+  var data = snapshot.val();
+  document.getElementById("pickupDisplay").innerText =
+    data ? formatDate(data) : "ยังไม่มีประกาศ";
+});
+
+firebase.database().ref("deliveryTime").on("value", function(snapshot) {
+  var data = snapshot.val();
+  document.getElementById("deliveryDisplay").innerText =
+    data ? formatDate(data) : "ยังไม่มีประกาศ";
+});
+
+function formatDate(datetime) {
+  var d = new Date(datetime);
+  return "วันที่ " + d.toLocaleDateString("th-TH") +
+         " เวลา " + d.toLocaleTimeString("th-TH", {hour:'2-digit', minute:'2-digit'});
+}
+</script>
+
+</body>
+</html>
