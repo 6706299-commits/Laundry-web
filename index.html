@@ -9,7 +9,7 @@
 
 <style>
 body { font-family: Arial; padding:20px; }
-button { padding:5px 10px; margin-top:5px; }
+button { padding:6px 12px; margin-top:5px; }
 #adminPanel { display:none; margin-top:15px; }
 </style>
 </head>
@@ -28,64 +28,75 @@ button { padding:5px 10px; margin-top:5px; }
 <button onclick="loginAdmin()">เข้าสู่ระบบ</button>
 
 <div id="adminPanel">
-รับผ้า:
-<input type="datetime-local" id="pickupTimeInput">
-<button onclick="saveTime('pickupTime')">บันทึก</button>
+  <p>รับผ้า:</p>
+  <input type="datetime-local" id="pickupInput">
+  <button onclick="saveTime('pickup')">บันทึก</button>
 
-<br><br>
-
-ส่งผ้า:
-<input type="datetime-local" id="deliveryTimeInput">
-<button onclick="saveTime('deliveryTime')">บันทึก</button>
+  <p>ส่งผ้า:</p>
+  <input type="datetime-local" id="deliveryInput">
+  <button onclick="saveTime('delivery')">บันทึก</button>
 </div>
 
 <script>
 var firebaseConfig = {
-  apiKey: "ใส่ของเธอ",
-  authDomain: "ใส่ของเธอ",
-  databaseURL: "ใส่ของเธอ",
-  projectId: "ใส่ของเธอ",
-  storageBucket: "ใส่ของเธอ",
-  messagingSenderId: "ใส่ของเธอ",
-  appId: "ใส่ของเธอ"
+  apiKey: "AIzaSyAF0L8SlhyPjzmv1W12iPCd6tmSygvidXI",
+  authDomain: "pcc-laundry.firebaseapp.com",
+  databaseURL: "https://pcc-laundry-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "pcc-laundry",
+  storageBucket: "pcc-laundry.firebasestorage.app",
+  messagingSenderId: "792289941224",
+  appId: "1:792289941224:web:4fbcb75441bac1be4a1b5d",
+  measurementId: "G-MSWQSQCT7D"
 };
 
 firebase.initializeApp(firebaseConfig);
-var database = firebase.database();
+var db = firebase.database();
 
 function loginAdmin() {
   var pass = document.getElementById("adminPass").value;
-  if (pass === "admin999") {
+  if(pass === "admin999"){
     document.getElementById("adminPanel").style.display = "block";
   } else {
     alert("รหัสผิด");
   }
 }
 
-function saveTime(type) {
-  var inputId = type === "pickupTime" ? "pickupTimeInput" : "deliveryTimeInput";
+function saveTime(type){
+  var inputId = type === "pickup" ? "pickupInput" : "deliveryInput";
   var value = document.getElementById(inputId).value;
-  if (value) {
-    firebase.database().ref(type).set(value);
+
+  if(!value){
+    alert("กรุณาเลือกเวลา");
+    return;
   }
+
+  db.ref("times/" + type).set(value)
+    .then(function(){
+      alert("บันทึกสำเร็จ");
+    })
+    .catch(function(error){
+      console.error(error);
+      alert("บันทึกไม่สำเร็จ");
+    });
 }
 
-firebase.database().ref("pickupTime").on("value", function(snapshot) {
+db.ref("times").on("value", function(snapshot){
   var data = snapshot.val();
-  document.getElementById("pickupDisplay").innerText =
-    data ? formatDate(data) : "ยังไม่มีประกาศ";
+
+  if(data){
+    if(data.pickup){
+      document.getElementById("pickupDisplay").innerText = formatDate(data.pickup);
+    }
+    if(data.delivery){
+      document.getElementById("deliveryDisplay").innerText = formatDate(data.delivery);
+    }
+  }
 });
 
-firebase.database().ref("deliveryTime").on("value", function(snapshot) {
-  var data = snapshot.val();
-  document.getElementById("deliveryDisplay").innerText =
-    data ? formatDate(data) : "ยังไม่มีประกาศ";
-});
-
-function formatDate(datetime) {
+function formatDate(datetime){
   var d = new Date(datetime);
   return "วันที่ " + d.toLocaleDateString("th-TH") +
-         " เวลา " + d.toLocaleTimeString("th-TH", {hour:'2-digit', minute:'2-digit'});
+         " เวลา " + d.toLocaleTimeString("th-TH",{hour:'2-digit',minute:'2-digit'});
 }
 </script>
 
